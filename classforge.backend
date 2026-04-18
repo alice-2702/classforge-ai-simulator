@@ -1,0 +1,118 @@
+npm init -y
+npm install express cors dotenv jsonwebtoken bcryptjs openai
+npm install -D nodemon
+classforge-backend/
+├── .env
+├── server.js
+├── package.json
+├── routes/
+│   ├── auth.js
+│   └── session.js
+├── controllers/
+│   └── aiController.js
+├── middleware/
+│   └── auth.js
+├── data/
+│   ├── users.json
+│   └── sessions.json
+└── utils/
+    └── behaviorEngine.js
+    PORT=5000
+JWT_SECRET=your-super-secret-jwt-key-12345
+OPENAI_API_KEY=sk-your-openai-key-here
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/sessions', require('./routes/session'));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 ClassForge Backend running on http://localhost:${PORT}`);
+});
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const router = express.Router();
+
+const users = JSON.parse(fs.readFileSync('./data/users.json'));
+
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = users.find(u => u.email === email);
+  if (!user) return res.status(400).json({ message: "User not found" });
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+  const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+  res.json({ 
+    success: true, 
+    token,
+    user: { id: user.id, name: user.name, email: user.email }
+  });
+});
+
+module.exports = router;
+const personalities = {
+  curious:    { name: "Aisha",  emoji: "🧠", responseStyle: "asks deep questions" },
+  confused:   { name: "Marcus", emoji: "🤔", responseStyle: "asks for clarification" },
+  bored:      { name: "Liam",   emoji: "🥱", responseStyle: "shows low engagement" },
+  confident:  { name: "Priya",  emoji: "😎", responseStyle: "acts like they know everything" },
+  slow:       { name: "Diego",  emoji: "🐢", responseStyle: "needs simple examples" }
+};
+
+function generateStudentReaction(teacherMessage, personality) {
+  const lowerMsg = teacherMessage.toLowerCase();
+  
+  let response = "";
+
+  switch(personality) {
+    case "curious":
+      response = lowerMsg.includes("why") ? 
+        "That's interesting! What would happen if we changed one variable?" : 
+        "Can you give a real-world example?";
+      break;
+    case "confused":
+      response = "I'm still confused. Can you explain it in a simpler way?";
+      break;
+    case "bored":
+      response = "This is taking too long... Can we move on?";
+      break;
+    case "confident":
+      response = "I already knew that. It's pretty basic.";
+      break;
+    case "slow":
+      response = "Sorry, can you show an example?";
+      break;
+  }
+
+  return {
+    student: personalities[personality].name,
+    emoji: personalities[personality].emoji,
+    message: response,
+    emotion: personality
+  };
+}
+
+module.exports = { generateStudentReaction };
+[
+  {
+    "id": 1,
+    "name": "Ms. Johnson",
+    "email": "teacher@school.edu",
+    "password": "$2a$10$examplehashedpassword123456789"
+  }
+]
+npm rum dev

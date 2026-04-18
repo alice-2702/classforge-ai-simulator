@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ClassForge - Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
+  <style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%); }
+    .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.2); }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center text-white">
+  <div class="max-w-5xl w-full mx-4 grid md:grid-cols-2 gap-8">
+    
+    <!-- Left Side -->
+    <div class="hidden md:flex flex-col justify-center items-center text-center p-10 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700">
+      <i class="fa-solid fa-book-open text-7xl mb-4"></i>
+      <h1 class="text-5xl font-bold tracking-tight">ClassForge</h1>
+      <h2 class="text-3xl font-semibold mb-6 mt-4">AI Teaching Simulator</h2>
+      <p class="text-blue-100 text-lg max-w-xs">
+        Practice teaching with realistic AI students.<br>
+        Improve your skills with instant feedback.
+      </p>
+    </div>
+
+    <!-- Login Form -->
+    <div class="glass rounded-3xl p-10 shadow-2xl">
+      <div class="md:hidden text-center mb-8">
+        <i class="fa-solid fa-book-open text-5xl text-blue-400"></i>
+        <h1 class="text-4xl font-bold mt-3">ClassForge</h1>
+      </div>
+
+      <h2 class="text-3xl font-bold text-center mb-2">Welcome Back</h2>
+      <p class="text-center text-slate-400 mb-8">Sign in to practice teaching</p>
+
+      <form id="loginForm" class="space-y-6">
+        <div>
+          <label class="block text-sm font-medium mb-2">Email Address</label>
+          <input type="email" id="email" placeholder="teacher@school.edu"
+            class="w-full px-5 py-4 bg-white/10 border border-white/20 rounded-2xl focus:outline-none focus:border-blue-400 transition" required />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-2">Password</label>
+          <input type="password" id="password" placeholder="••••••••"
+            class="w-full px-5 py-4 bg-white/10 border border-white/20 rounded-2xl focus:outline-none focus:border-blue-400 transition" required />
+        </div>
+
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" class="accent-blue-500"/>
+            <span>Remember me</span>
+          </label>
+          <a href="#" class="text-blue-400 hover:text-blue-300">Forgot Password?</a>
+        </div>
+
+        <button type="submit"
+          class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-2xl font-semibold text-lg transition">
+          Sign In
+        </button>
+      </form>
+
+      <div class="text-center mt-6 text-sm">
+        Don't have an account? 
+        <a href="#" class="text-blue-400 hover:text-blue-300">Sign up free</a>
+      </div>
+
+      <button onclick="startDemo()" 
+        class="w-full mt-6 text-blue-400 hover:text-blue-300 py-3 text-sm font-medium border border-dashed border-blue-400/50 rounded-2xl hover:border-blue-400 transition">
+        Try Demo Classroom
+      </button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // Redirect to classroom after login
+      window.location.href = "classroom.html";
+    });
+
+    function startDemo() {
+      window.location.href = "classroom.html";
+    }
+  </script>
+</body>
+</html>
+fetch('http://localhost:5000/api/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password })
+})
+.then(res => res.json())
+.then(data => {
+  if (data.success) window.location.href = "classroom.html";
+});

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Teaching Simulator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <main>
+      <section id="login-view" class="view active">
+        <div class="card login-card">
+          <h1>Teacher Login</h1>
+          <p>Enter your email and password to launch the teaching simulator.</p>
+          <form id="login-form">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="teacher@school.com" required />
+
+            <label for="password">Password</label>
+            <input id="password" type="password" placeholder="Password" required minlength="6" />
+
+            <button type="submit" class="primary-btn">Log in</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="simulator-view" class="view">
+        <div class="top-bar">
+          <div>
+            <h2>AI Teaching Simulator</h2>
+            <p id="welcome-text">Welcome, Teacher.</p>
+          </div>
+          <button id="logout-button" class="secondary-btn">Logout</button>
+        </div>
+
+        <div class="grid-layout">
+          <aside class="side-panel">
+            <div class="panel-card">
+              <h3>Student Profile</h3>
+              <label for="student-type">Student type</label>
+              <select id="student-type">
+                <option value="motivated">Motivated Learner</option>
+                <option value="distracted">Distracted Learner</option>
+                <option value="curious">Curious Learner</option>
+                <option value="shy">Shy Learner</option>
+              </select>
+
+              <label for="lesson-topic">Lesson topic</label>
+              <select id="lesson-topic">
+                <option value="math">Math: Patterns & Logic</option>
+                <option value="science">Science: Energy & Motion</option>
+                <option value="history">History: Creative Storytelling</option>
+                <option value="language">Language: Writing a Story</option>
+              </select>
+
+              <button id="start-session" class="primary-btn">Start lesson</button>
+            </div>
+          </aside>
+
+          <section class="content-panel">
+            <div class="panel-card">
+              <h3>Lesson Plan</h3>
+              <div class="lesson-summary" id="lesson-summary">
+                Choose a student and topic to prepare your lesson.
+              </div>
+            </div>
+
+            <div class="panel-card simulator-panel">
+              <div class="simulator-header">
+                <h3>AI Teaching Session</h3>
+                <span id="session-label">Ready to teach</span>
+              </div>
+              <div id="simulator-output" class="simulator-output">
+                <p class="hint">After you start, the AI will simulate student responses and suggest teaching moves.</p>
+              </div>
+              <div class="controls-row">
+                <button id="explain-button" class="secondary-btn">Explain again</button>
+                <button id="encourage-button" class="secondary-btn">Encourage student</button>
+                <button id="change-strategy-button" class="secondary-btn">Try a new strategy</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+fetch('http://localhost:5000/api/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password })
+})
+.then(res => res.json())
+.then(data => {
+  if (data.success) window.location.href = "classroom.html";
+});

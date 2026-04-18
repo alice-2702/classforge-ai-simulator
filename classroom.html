@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ClassForge - Virtual Classroom</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
+  <style>
+    .student-card { transition: all 0.3s; }
+    .student-card:hover { transform: scale(1.05); }
+    .bored { border-color: #ef4444 !important; box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+    .curious { border-color: #eab308 !important; box-shadow: 0 0 20px rgba(234, 179, 8, 0.3); }
+    .confused { border-color: #f97316 !important; box-shadow: 0 0 20px rgba(249, 115, 22, 0.3); }
+    .engaged { border-color: #22c55e !important; box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+    .frustrated { border-color: #dc2626 !important; box-shadow: 0 0 20px rgba(220, 38, 38, 0.3); }
+    .excited { border-color: #8b5cf6 !important; box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+    .thinking { border-color: #06b6d4 !important; box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
+    .hand-raised { animation: wave 1s ease-in-out infinite; }
+    @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
+    .notification { animation: slideIn 0.3s ease-out; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen">
+
+  <div class="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-900">
+    <div class="flex items-center gap-3">
+      <i class="fa-solid fa-book-open text-3xl text-blue-400"></i>
+      <div>
+        <h1 class="text-2xl font-bold">ClassForge</h1>
+        <p class="text-sm text-slate-400">AI Teaching Simulator</p>
+      </div>
+    </div>
+    <div class="text-center">
+      <h2 class="text-xl font-semibold">8th Grade Science — Photosynthesis</h2>
+      <div class="flex items-center gap-4 mt-2 text-sm text-slate-400">
+        <span><i class="fa-solid fa-clock mr-1"></i>45:32</span>
+        <span><i class="fa-solid fa-users mr-1"></i>6 Students</span>
+        <span><i class="fa-solid fa-brain mr-1"></i>AI Mode</span>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="toggleAIDetection()" id="aiToggle" 
+        class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-xl font-medium text-sm">
+        <i class="fa-solid fa-robot mr-1"></i>AI Active
+      </button>
+      <button onclick="endSession()" 
+        class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl font-medium text-sm">
+        End Session
+      </button>
+    </div>
+  </div>
+
+  <div class="flex h-[calc(100vh-120px)]">
+    <!-- Classroom Area -->
+    <div class="flex-1 p-8 bg-[radial-gradient(#334155_1px,transparent_1px)] bg-[length:30px_30px] relative">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-slate-400 text-lg">Virtual AI Classroom</h3>
+        <div class="flex gap-3">
+          <button onclick="showLessonPlan()" 
+            class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm">
+            <i class="fa-solid fa-clipboard-list mr-1"></i>Lesson Plan
+          </button>
+          <button onclick="showClassStats()" 
+            class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-sm">
+            <i class="fa-solid fa-chart-bar mr-1"></i>Class Stats
+          </button>
+        </div>
+      </div>
+      
+      <!-- Notification Area -->
+      <div id="notifications" class="fixed top-24 right-4 z-50 space-y-2"></div>
+      
+      <div class="grid grid-cols-3 gap-6 max-w-5xl mx-auto" id="students">
+        <!-- Students populated by JavaScript -->
+      </div>
+      
+      <!-- Quick Actions Bar -->
+      <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800/90 backdrop-blur-sm border border-slate-600 rounded-2xl p-4 shadow-2xl">
+        <div class="flex gap-4 text-sm">
+          <button onclick="quickAction('askQuestion')" 
+            class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl">
+            <i class="fa-solid fa-question mr-1"></i>Ask Question
+          </button>
+          <button onclick="quickAction('giveFeedback')" 
+            class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-xl">
+            <i class="fa-solid fa-comment-dots mr-1"></i>Give Feedback
+          </button>
+          <button onclick="quickAction('changeActivity')" 
+            class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-xl">
+            <i class="fa-solid fa-exchange-alt mr-1"></i>Change Activity
+          </button>
+          <button onclick="quickAction('callBreak')" 
+            class="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-xl">
+            <i class="fa-solid fa-coffee mr-1"></i>Call Break
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Teacher Control Panel -->
+    <div class="w-96 bg-slate-900 border-l border-slate-700 flex flex-col">
+      <!-- Panel Header -->
+      <div class="p-4 border-b border-slate-700">
+        <div class="flex justify-between items-center">
+          <span class="font-medium">Teacher Controls</span>
+          <div class="flex gap-2">
+            <button onclick="clearConversation()" 
+              class="text-slate-400 hover:text-white text-sm">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+            <button onclick="exportConversation()" 
+              class="text-slate-400 hover:text-white text-sm">
+              <i class="fa-solid fa-download"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Class Mood Indicator -->
+      <div class="p-4 border-b border-slate-700">
+        <div class="text-sm text-slate-400 mb-2">Class Mood</div>
+        <div class="flex gap-2">
+          <div class="flex-1 bg-slate-800 rounded-lg p-2 text-center">
+            <div class="text-2xl mb-1">😊</div>
+            <div class="text-xs text-green-400">Engaged: 4</div>
+          </div>
+          <div class="flex-1 bg-slate-800 rounded-lg p-2 text-center">
+            <div class="text-2xl mb-1">🤔</div>
+            <div class="text-xs text-yellow-400">Thinking: 2</div>
+          </div>
+          <div class="flex-1 bg-slate-800 rounded-lg p-2 text-center">
+            <div class="text-2xl mb-1">😴</div>
+            <div class="text-xs text-red-400">Bored: 0</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Conversation History -->
+      <div class="flex-1 p-4 overflow-auto" id="conversation">
+        <div class="text-center text-slate-500 text-sm py-8">
+          Start teaching to see conversation history
+        </div>
+      </div>
+
+      <!-- Message Input -->
+      <div class="p-4 border-t border-slate-700">
+        <div class="mb-3">
+          <select id="messageType" class="w-full bg-slate-800 border border-slate-600 rounded-xl p-2 text-sm">
+            <option value="direct">Direct Instruction</option>
+            <option value="question">Ask Question</option>
+            <option value="feedback">Give Feedback</option>
+            <option value="activity">Start Activity</option>
+            <option value="assessment">Quick Assessment</option>
+          </select>
+        </div>
+        
+        <textarea id="teacherInput" rows="3"
+          class="w-full bg-slate-800 border border-slate-600 rounded-2xl p-4 text-sm resize-none"
+          placeholder="What will you teach or ask the class?"></textarea>
+        
+        <div class="flex gap-3 mt-4">
+          <button onclick="sendMessage()" 
+            class="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-2xl font-medium text-sm">
+            <i class="fa-solid fa-paper-plane mr-1"></i>Send Message
+          </button>
+          <button onclick="callRandomStudent()" 
+            class="px-4 bg-slate-700 hover:bg-slate-600 rounded-2xl">
+            <i class="fa-solid fa-hand-pointer"></i>
+          </button>
+          <button onclick="recordAudio()" id="recordBtn"
+            class="px-4 bg-red-600 hover:bg-red-700 rounded-2xl">
+            <i class="fa-solid fa-microphone"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Enhanced student data with more personalities and states
+    const studentsData = [
+      { id:1, name:"Aisha", personality:"Curious", emoji:"🧠", emotion:"curious", handRaised: false, engagement: 85 },
+      { id:2, name:"Marcus", personality:"Confused", emoji:"🤔", emotion:"confused", handRaised: false, engagement: 45 },
+      { id:3, name:"Liam", personality:"Bored", emoji:"🥱", emotion:"bored", handRaised: false, engagement: 25 },
+      { id:4, name:"Priya", personality:"Active", emoji:"⚡", emotion:"engaged", handRaised: true, engagement: 90 },
+      { id:5, name:"Diego", personality:"Slow", emoji:"🐢", emotion:"thinking", handRaised: false, engagement: 60 },
+      { id:6, name:"Zara", personality:"Excited", emoji:"🎉", emotion:"excited", handRaised: false, engagement: 95 }
+    ];
+
+    let conversation = [];
+    let sessionStartTime = Date.now();
+    let aiActive = true;
+    let isRecording = false;
+
+    // Initialize the classroom
+    function initClassroom() {
+      renderStudents();
+      updateClassMood();
+      startTimer();
+    }
+
+    function renderStudents() {
+      const container = document.getElementById('students');
+      container.innerHTML = studentsData.map(student => `
+        <div class="student-card bg-slate-800 border-2 border-slate-600 rounded-3xl p-6 text-center ${student.emotion} ${student.handRaised ? 'hand-raised' : ''}">
+          <div class="text-6xl mb-3 relative">
+            ${student.emoji}
+            ${student.handRaised ? '<div class="absolute -top-2 -right-2 text-2xl">✋</div>' : ''}
+          </div>
+          <h4 class="font-bold">${student.name}</h4>
+          <p class="text-xs text-slate-400">${student.personality}</p>
+          <div class="mt-2 mb-3">
+            <div class="w-full bg-slate-700 rounded-full h-2">
+              <div class="bg-gradient-to-r from-red-500 to-green-500 h-2 rounded-full" 
+                   style="width: ${student.engagement}%"></div>
+            </div>
+            <div class="text-xs text-slate-500 mt-1">${student.engagement}% engaged</div>
+          </div>
+          <div class="mt-4 text-xs bg-black/30 rounded-2xl p-3 min-h-[60px] text-left" id="response-${student.id}">
+            <!-- Dynamic response appears here -->
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateClassMood() {
+      const engaged = studentsData.filter(s => s.emotion === 'engaged' || s.emotion === 'excited').length;
+      const thinking = studentsData.filter(s => s.emotion === 'thinking' || s.emotion === 'curious').length;
+      const bored = studentsData.filter(s => s.emotion === 'bored' || s.emotion === 'frustrated').length;
+      
+      // Update the mood indicators in the control panel
+      const moodContainer = document.querySelector('.border-b.border-slate-700 .flex.gap-2');
+      if (moodContainer) {
+        moodContainer.innerHTML = `
+          <div class="flex-1 bg-slate-800 rounded-lg p-2 text-center">
+            <div class="text-2xl mb-1">😊</div>
+            <div class="text-xs text-green-400">Engaged: ${engaged}</div>
+          </div>
+          <div class="flex-1 bg-slate-800 rounded-lg p-2 text-center">
+            <div class="text-2xl mb-1">🤔</div>
+            <div class="text-xs text-yellow-400">Thinking: ${thinking}</div>
+          </div>
+          <div class="flex-1 bg-slate-800 rounded-lg p-2 text-center">
+            <div class="text-2xl mb-1">😴</div>
+            <div class="text-xs text-red-400">Bored: ${bored}</div>
+          </div>
+        `;
+      }
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('teacherInput');
+      const messageType = document.getElementById('messageType').value;
+      const text = input.value.trim();
+      if (!text) return;
+
+      addToConversation("You", text, "teacher", messageType);
+
+      if (aiActive) {
+        // Simulate AI student reactions with more sophisticated responses
+        simulateStudentReactions(text, messageType);
+      }
+
+      input.value = "";
+    }
+
+    function simulateStudentReactions(teacherMessage, messageType) {
+      const lowerMessage = teacherMessage.toLowerCase();
+      
+      studentsData.forEach(student => {
+        // Different response probabilities based on personality and message type
+        let responseChance = 0.3; // Base chance
+        
+        if (messageType === 'question') responseChance += 0.4;
+        if (messageType === 'activity') responseChance += 0.3;
+        if (student.personality === 'Active' || student.personality === 'Excited') responseChance += 0.2;
+        if (student.personality === 'Slow') responseChance -= 0.2;
+
+        if (Math.random() < responseChance) {
+          let reply = generateAIResponse(student, teacherMessage, messageType);
+          
+          // Update student emotion based on interaction
+          updateStudentEmotion(student, teacherMessage, messageType);
+          
+          setTimeout(() => {
+            document.getElementById(`response-${student.id}`).innerHTML = `<span class="italic">"${reply}"</span>`;
+            addToConversation(student.name, reply, "student");
+            
+            // Randomly raise hand after responding
+            if (Math.random() < 0.3) {
+              raiseHand(student.id);
+            }
+          }, 800 + Math.random() * 1200);
+        }
+      });
+      
+      // Update class mood after reactions
+      setTimeout(updateClassMood, 2000);
+    }
+
+    function generateAIResponse(student, teacherMessage, messageType) {
+      const responses = {
+        Curious: {
+          question: ["That's interesting! What happens if we change one variable?", "Can you explain why that happens?", "What would happen in a different scenario?"],
+          activity: ["This activity looks fun! Let's try it.", "I'm excited to participate!", "What materials do we need?"],
+          feedback: ["Thank you for the feedback! I'll work on that.", "I understand now, thanks for clarifying.", "That helps me improve."],
+          default: ["That's fascinating! Tell me more.", "I have a question about that...", "This is really interesting."]
+        },
+        Confused: {
+          question: ["I'm sorry, I didn't understand that part...", "Could you explain that again?", "I'm a bit lost here."],
+          activity: ["I'm not sure how to start this activity.", "This seems complicated...", "Can you show us how?"],
+          feedback: ["I need more help with this.", "I'm still confused about...", "Can you give an example?"],
+          default: ["I'm not sure I follow...", "This is confusing to me.", "I need clarification."]
+        },
+        Bored: {
+          question: ["This is getting boring...", "Do we have to keep going?", "When will this be over?"],
+          activity: ["This activity seems pointless.", "I'd rather do something else.", "Not interested."],
+          feedback: ["Whatever...", "I don't care.", "This is boring."],
+          default: ["This is boring.", "Can we move on?", "I'm losing interest."]
+        },
+        Active: {
+          question: ["I know the answer! It's...", "Let me try to explain it.", "I have an idea!"],
+          activity: ["Let's get started! I'm ready.", "This will be fun!", "I want to participate."],
+          feedback: ["Thanks! I'll do better next time.", "I appreciate the feedback.", "That motivates me!"],
+          default: ["I'm engaged and ready to learn!", "This is great!", "Let's keep going!"]
+        },
+        Slow: {
+          question: ["Let me think about that...", "I need some time to process this.", "Hmm, I'm not sure yet."],
+          activity: ["I need more time for this.", "Let me try slowly.", "I'm working on it."],
+          feedback: ["I'll try to improve gradually.", "I understand, but it takes time.", "Thank you for your patience."],
+          default: ["I'm still thinking...", "Give me a moment.", "Processing this..."]
+        },
+        Excited: {
+          question: ["This is amazing! The answer is...", "I love this topic!", "This is so cool!"],
+          activity: ["Yay! Let's do this activity!", "I'm super excited!", "This will be awesome!"],
+          feedback: ["Thank you! I feel motivated!", "I love learning this!", "This is the best!"],
+          default: ["This is fantastic!", "I'm loving this!", "So exciting!"]
+        }
+      };
+
+      const personalityResponses = responses[student.personality] || responses.Curious;
+      const typeResponses = personalityResponses[messageType] || personalityResponses.default;
+      return typeResponses[Math.floor(Math.random() * typeResponses.length)];
+    }
+
+    function updateStudentEmotion(student, teacherMessage, messageType) {
+      // Update engagement and emotion based on interaction
+      let engagementChange = 0;
+      let newEmotion = student.emotion;
+
+      if (messageType === 'question') {
+        engagementChange = student.personality === 'Curious' ? 15 : 
+                          student.personality === 'Confused' ? -5 : 5;
+      } else if (messageType === 'activity') {
+        engagementChange = student.personality === 'Active' ? 20 : 
+                          student.personality === 'Bored' ? -10 : 10;
+      } else if (messageType === 'feedback') {
+        engagementChange = 10;
+      }
+
+      student.engagement = Math.max(0, Math.min(100, student.engagement + engagementChange));
+
+      // Update emotion based on engagement
+      if (student.engagement > 80) newEmotion = 'excited';
+      else if (student.engagement > 60) newEmotion = 'engaged';
+      else if (student.engagement > 40) newEmotion = 'thinking';
+      else if (student.engagement > 20) newEmotion = 'confused';
+      else newEmotion = 'bored';
+
+      student.emotion = newEmotion;
+    }
+
+    function addToConversation(name, text, type, messageType = '') {
+      const timestamp = new Date().toLocaleTimeString();
+      conversation.push({name, text, type, messageType, timestamp});
+      
+      const convDiv = document.getElementById('conversation');
+      const messageClass = type === 'teacher' ? 'text-right' : '';
+      const bgClass = type === 'teacher' ? 'bg-blue-600' : 'bg-slate-700';
+      const typeIcon = messageType ? getMessageTypeIcon(messageType) : '';
+      
+      convDiv.innerHTML += `
+        <div class="${messageClass} mb-4">
+          <div class="inline-block max-w-[80%] px-4 py-3 rounded-2xl ${bgClass}">
+            <div class="flex items-center gap-2 mb-1">
+              <strong class="text-xs opacity-75">${name}</strong>
+              ${typeIcon}
+              <span class="text-xs opacity-50">${timestamp}</span>
+            </div>
+            ${text}
+          </div>
+        </div>`;
+      
+      convDiv.scrollTop = convDiv.scrollHeight;
+    }
+
+    function getMessageTypeIcon(type) {
+      const icons = {
+        question: '<i class="fa-solid fa-question text-yellow-400 text-xs"></i>',
+        feedback: '<i class="fa-solid fa-comment-dots text-green-400 text-xs"></i>',
+        activity: '<i class="fa-solid fa-play text-purple-400 text-xs"></i>',
+        assessment: '<i class="fa-solid fa-clipboard-check text-blue-400 text-xs"></i>',
+        direct: '<i class="fa-solid fa-chalkboard-teacher text-blue-400 text-xs"></i>'
+      };
+      return icons[type] || '';
+    }
+
+    function callRandomStudent() {
+      const availableStudents = studentsData.filter(s => !s.handRaised);
+      if (availableStudents.length === 0) return;
+      
+      const random = availableStudents[Math.floor(Math.random() * availableStudents.length)];
+      raiseHand(random.id);
+      
+      const replies = ["Can you explain that again?", "I have a question!", "This is confusing.", "I need help.", "Can I share my idea?"];
+      const reply = replies[Math.floor(Math.random() * replies.length)];
+      
+      setTimeout(() => {
+        document.getElementById(`response-${random.id}`).innerHTML = `<span class="italic">"${reply}"</span>`;
+        addToConversation(random.name, reply, "student");
+      }, 500);
+    }
+
+    function raiseHand(studentId) {
+      const student = studentsData.find(s => s.id === studentId);
+      if (student) {
+        student.handRaised = true;
+        renderStudents();
+        
+        // Show notification
+        showNotification(`${student.name} raised their hand!`, 'info');
+        
+        // Auto-lower hand after some time
+        setTimeout(() => {
+          student.handRaised = false;
+          renderStudents();
+        }, 10000);
+      }
+    }
+
+    function showNotification(message, type = 'info') {
+      const notifications = document.getElementById('notifications');
+      const notification = document.createElement('div');
+      notification.className = `notification bg-slate-800 border-l-4 border-blue-500 text-white px-4 py-3 rounded-lg shadow-lg max-w-sm`;
+      notification.innerHTML = `
+        <div class="flex items-center">
+          <i class="fa-solid fa-info-circle mr-2 text-blue-400"></i>
+          <span class="text-sm">${message}</span>
+        </div>
+      `;
+      notifications.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 4000);
+    }
+
+    function quickAction(action) {
+      const actions = {
+        askQuestion: "Let's review what we've learned so far. Can anyone explain the process of photosynthesis?",
+        giveFeedback: "Great participation everyone! I noticed some excellent questions being asked. Keep up the good work!",
+        changeActivity: "Let's switch to a hands-on activity. Imagine you're a plant - what do you need to survive and grow?",
+        callBreak: "Let's take a 2-minute break to process what we've learned. Think about one question you still have."
+      };
+      
+      document.getElementById('teacherInput').value = actions[action];
+      document.getElementById('messageType').value = action === 'askQuestion' ? 'question' : 
+                                                    action === 'giveFeedback' ? 'feedback' : 
+                                                    action === 'changeActivity' ? 'activity' : 'direct';
+    }
+
+    function toggleAIDetection() {
+      aiActive = !aiActive;
+      const btn = document.getElementById('aiToggle');
+      btn.innerHTML = aiActive ? '<i class="fa-solid fa-robot mr-1"></i>AI Active' : '<i class="fa-solid fa-robot-slash mr-1"></i>AI Off';
+      btn.className = aiActive ? 'bg-green-600 hover:bg-green-700 px-4 py-2 rounded-xl font-medium text-sm' : 
+                                'bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl font-medium text-sm';
+      
+      showNotification(aiActive ? 'AI responses enabled' : 'AI responses disabled', aiActive ? 'success' : 'warning');
+    }
+
+    function recordAudio() {
+      isRecording = !isRecording;
+      const btn = document.getElementById('recordBtn');
+      btn.innerHTML = isRecording ? '<i class="fa-solid fa-stop"></i>' : '<i class="fa-solid fa-microphone"></i>';
+      btn.className = isRecording ? 'px-4 bg-gray-600 hover:bg-gray-700 rounded-2xl' : 'px-4 bg-red-600 hover:bg-red-700 rounded-2xl';
+      
+      if (isRecording) {
+        showNotification('Voice recording started...', 'info');
+      } else {
+        showNotification('Voice recording stopped. Processing...', 'success');
+        setTimeout(() => {
+          document.getElementById('teacherInput').value = "Voice message: 'Great job everyone on today's photosynthesis lesson!'";
+        }, 1000);
+      }
+    }
+
+    function clearConversation() {
+      conversation = [];
+      document.getElementById('conversation').innerHTML = '<div class="text-center text-slate-500 text-sm py-8">Conversation cleared</div>';
+    }
+
+    function exportConversation() {
+      const data = conversation.map(msg => `${msg.timestamp} - ${msg.name}: ${msg.text}`).join('\n');
+      const blob = new Blob([data], {type: 'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'classroom-conversation.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+      showNotification('Conversation exported!', 'success');
+    }
+
+    function showLessonPlan() {
+      showNotification('Lesson Plan: Photosynthesis - 45 minutes', 'info');
+      // Could open a modal with detailed lesson plan
+    }
+
+    function showClassStats() {
+      const avgEngagement = Math.round(studentsData.reduce((sum, s) => sum + s.engagement, 0) / studentsData.length);
+      showNotification(`Class Stats: ${avgEngagement}% avg engagement, ${conversation.length} interactions`, 'info');
+    }
+
+    function startTimer() {
+      setInterval(() => {
+        const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        document.querySelector('.fa-clock').parentElement.innerHTML = `<i class="fa-solid fa-clock mr-1"></i>${timeStr}`;
+      }, 1000);
+    }
+
+    function endSession() {
+      const avgEngagement = Math.round(studentsData.reduce((sum, s) => sum + s.engagement, 0) / studentsData.length);
+      const totalInteractions = conversation.length;
+      
+      const feedback = `
+Session Complete!
+
+📊 Session Summary:
+• Duration: ${Math.floor((Date.now() - sessionStartTime) / 60000)} minutes
+• Average Class Engagement: ${avgEngagement}%
+• Total Interactions: ${totalInteractions}
+• Students Participated: ${new Set(conversation.filter(c => c.type === 'student').map(c => c.name)).size}
+
+🎯 Teaching Insights:
+• ${avgEngagement > 70 ? 'Excellent engagement! Students were highly involved.' : avgEngagement > 50 ? 'Good engagement with room for improvement.' : 'Low engagement - consider more interactive activities.'}
+• ${totalInteractions > 20 ? 'Great interaction level!' : 'Consider encouraging more participation.'}
+
+💡 Recommendations:
+• Focus on activities that match student personalities
+• Use more questions to increase engagement
+• Consider breaking up longer explanations
+      `;
+      
+      alert(feedback);
+      window.location.href = "login.html";
+    }
+
+    // Initialize when page loads
+    initClassroom();
+  </script>
+</body>
+</html>
+fetch('http://localhost:5000/api/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password })
+})
+.then(res => res.json())
+.then(data => {
+  if (data.success) window.location.href = "classroom.html";
+});
